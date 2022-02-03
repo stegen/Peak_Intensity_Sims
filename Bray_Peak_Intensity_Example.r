@@ -2,7 +2,7 @@ rm(list=ls())
 
 library('vegan')
 
-for (peak.rich in c(100,1000)) {
+for (peak.rich in c(100,1000,10000)) {
 
 bray.full.comp = numeric()
 
@@ -43,11 +43,14 @@ head(spxsite)
 bray.comp = numeric()
 
 for (i in 1:100) {
+  
+  # maybe build another setup that systematically varies the prob of zero)
+  min.detect = sample(x = c(1:10),size = 1) # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
 
   spxsite.mult = spxsite
   
-  # consider increasing the chance of getting a zero (start with 5%, maybe make the prob of zero vary across iterations...could do random for this one and maybe build another setup that systematically varies the prob of zero)
   peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
+  peaks.detect[peaks.detect < min.detect] = 0
   
   spxsite.mult = spxsite*peaks.detect
   
@@ -71,10 +74,14 @@ bray.comp = numeric()
 
 for (i in 1:100) {
   
+  min.detect = sample(x = c(1:10),size = 1) # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
+  
   spxsite.mult = spxsite
   
   samp1.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
   samp2.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
+  samp1.peaks.detect[samp1.peaks.detect < min.detect] = 0
+  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0
   
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
@@ -99,10 +106,14 @@ bray.comp = numeric()
 
 for (i in 1:100) {
   
+  min.detect = sample(x = c(1:10),size = 1) # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
+  
   spxsite.mult = spxsite
   
   samp1.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 10)
   samp2.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
+  samp1.peaks.detect[samp1.peaks.detect < I(min.detect/10)] = 0 # this is hard coded to rescale the min.detect because the detect range is 10x lower for samp1 in this case
+  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0
   
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
@@ -125,7 +136,9 @@ samples.diff.detect.range = bray.comp
 # based on assumption that the level of detectability varies with the trait value, but does not vary across samples
 bray.comp = numeric()
 
-for (i in 1:100) {
+for (i in 1:1) {
+  
+  # note that this does not include a min.detect step
   
   spxsite.mult = spxsite
   
@@ -156,7 +169,7 @@ bray.full.comp = rbind(bray.full.comp,cbind(rep(vegdist(x = t(spxsite),method = 
                                             peak.var,peak.and.samp.var,samples.diff.detect.range,trait.corr))
 
 #check niche breadth and order of magnitude variation
-print(c(niche.breadth,order.of.mag))
+print(c(niche.breadth,order.of.mag,bray.it,date()))
 
 }
 
