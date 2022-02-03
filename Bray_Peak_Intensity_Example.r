@@ -46,6 +46,7 @@ for (i in 1:100) {
 
   spxsite.mult = spxsite
   
+  # consider increasing the chance of getting a zero (start with 5%, maybe make the prob of zero vary across iterations...could do random for this one and maybe build another setup that systematically varies the prob of zero)
   peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
   
   spxsite.mult = spxsite*peaks.detect
