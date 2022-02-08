@@ -6,7 +6,7 @@ for (peak.rich in c(1000)) {
 
   bray.full.comp = numeric()
     
-for (min.detect in c(5,10,20)) {
+for (min.detect in c(10,20,80)) {
 
 for (bray.it in 1:100) {
 
@@ -88,16 +88,14 @@ print(c(niche.breadth,order.of.mag,bray.it,date(),min.detect))
 
 }
 
-}} # temp placeholders to run through code before making plots
+}
 
 bray.full.comp = as.data.frame(bray.full.comp)
 colnames(bray.full.comp)[1:6] = c("Min.Detect","Bray.True","Samp1.Shannon.True","Samp2.Shannon.True","Samp1.Weighted.True","Samp2.Weighted.True")
 
-
-
 # make plots
 
-pdf(paste0("Bray_Simulations_",peak.rich,"Detect_Varies.pdf"),height = 15)
+pdf(paste0("Bray_Simulations_",peak.rich,"_Detect_Varies.pdf"),height = 15)
 par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(3,1))
 
 unique.min.detect = 1
@@ -123,46 +121,42 @@ dev.off()
 #### need to edit below here
 # make plots
 
-pdf(paste0("Shannon_Simulations_",peak.rich,".pdf"),height = 20,width=10)
-par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(4,2))
+pdf(paste0("Shannon_Simulations_",peak.rich,"_Detect_Varies.pdf"),height = 15,width=10)
+par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(3,2))
 
-mod.to.plot = bray.full.comp$Samp1_Shannon.Peak.Var ~ bray.full.comp$Samp1.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peaks Vary in Detectability (Samp1)",cex=0.4)
+unique.min.detect = 1
+mod.to.plot = bray.full.comp$Samp1_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp2_Shannon.Peak.Var ~ bray.full.comp$Samp2.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peaks Vary in Detectability (Samp2)",cex=0.4)
+unique.min.detect = 1
+mod.to.plot = bray.full.comp$Samp2_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp2, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp1_Shannon.Peak.Samp.Var ~ bray.full.comp$Samp1.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peak Detectability Varies Across Peaks and Samples (Samp1)",cex=0.4)
+unique.min.detect = 2
+mod.to.plot = bray.full.comp$Samp1_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp2_Shannon.Peak.Samp.Var ~ bray.full.comp$Samp2.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peak Detectability Varies Across Peaks and Samples (Samp2)",cex=0.4)
+unique.min.detect = 2
+mod.to.plot = bray.full.comp$Samp2_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp2, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp1_Shannon.Samp.Detect.Var ~ bray.full.comp$Samp1.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Range in Peak Detectability Varies Across Samples (Samp1)",cex=0.4)
+unique.min.detect = 3
+mod.to.plot = bray.full.comp$Samp1_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp2_Shannon.Samp.Detect.Var ~ bray.full.comp$Samp2.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Range in Peak Detectability Varies Across Samples (Samp2)",cex=0.4)
-abline(0,1,col=2,lwd=2)
-points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
-
-mod.to.plot = bray.full.comp$Samp1_Shannon.Trait.Corr ~ bray.full.comp$Samp1.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peak Detectability Correlates with Trait Value (Samp1)",cex=0.4)
-abline(0,1,col=2,lwd=2)
-points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
-
-mod.to.plot = bray.full.comp$Samp2_Shannon.Trait.Corr ~ bray.full.comp$Samp2.Shannon.True
-plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main="Peak Detectability Correlates with Trait Value (Samp2)",cex=0.4)
+unique.min.detect = 3
+mod.to.plot = bray.full.comp$Samp2_Shannon.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Shannon.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Shannon",xlab="True Shannon",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp2, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
@@ -170,49 +164,45 @@ dev.off()
 
 #
 
-pdf(paste0("Weighted_Simulations_",peak.rich,".pdf"),height = 15,width=10)
+pdf(paste0("Weighted_Simulations_",peak.rich,"_Detect_Varies.pdf"),height = 15,width=10)
 par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(3,2))
 
-mod.to.plot = bray.full.comp$Samp1_Weighted.Peak.Var ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peaks Vary in Detectability (Samp1)",cex=0.4)
+unique.min.detect = 1
+mod.to.plot = bray.full.comp$Samp1_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp2_Weighted.Peak.Var ~ bray.full.comp$Samp2.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peaks Vary in Detectability (Samp2)",cex=0.4)
+unique.min.detect = 1
+mod.to.plot = bray.full.comp$Samp2_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp1_Weighted.Peak.Samp.Var ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peak Detectability Varies Across Peaks and Samples (Samp1)",cex=0.4)
+unique.min.detect = 2
+mod.to.plot = bray.full.comp$Samp1_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp2_Weighted.Peak.Samp.Var ~ bray.full.comp$Samp2.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peak Detectability Varies Across Peaks and Samples (Samp2)",cex=0.4)
+unique.min.detect = 2
+mod.to.plot = bray.full.comp$Samp2_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp1_Weighted.Samp.Detect.Var ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Range in Peak Detectability Varies Across Samples (Samp1)",cex=0.4)
+unique.min.detect = 3
+mod.to.plot = bray.full.comp$Samp1_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp1.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
-mod.to.plot = bray.full.comp$Samp1_Weighted.Samp.Detect.Var ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Range in Peak Detectability Varies Across Samples (Samp2)",cex=0.4)
-abline(0,1,col=2,lwd=2)
-points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
-
-mod.to.plot = bray.full.comp$Samp1_Weighted.Trait.Corr ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peak Detectability Correlates with Trait Value (Samp1)",cex=0.4)
-abline(0,1,col=2,lwd=2)
-points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
-
-mod.to.plot = bray.full.comp$Samp1_Weighted.Trait.Corr ~ bray.full.comp$Samp1.Weighted.True
-plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main="Peak Detectability Correlates with Trait Value (Samp2)",cex=0.4)
+unique.min.detect = 3
+mod.to.plot = bray.full.comp$Samp2_Weighted.Peak.Samp.Var[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])] ~ bray.full.comp$Samp2.Weighted.True[which(bray.full.comp$Min.Detect == unique(bray.full.comp$Min.Detect)[unique.min.detect])]
+plot(mod.to.plot,ylab="Simulated Weighted Trait",xlab="True Weighted Trait",main=paste0("Peak Detect Varies Across Peaks & Samples (Samp1, Min Detect = ",unique(bray.full.comp$Min.Detect)[unique.min.detect],")"),cex=0.4)
 abline(0,1,col=2,lwd=2)
 points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 
 dev.off()
 
-}}
+}
