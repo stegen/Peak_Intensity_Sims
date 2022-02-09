@@ -2,7 +2,7 @@ rm(list=ls())
 
 library('vegan')
 
-for (peak.rich in c(1000)) {
+for (peak.rich in c(100,1000,10000)) {
 
   bray.full.comp = numeric()
     
@@ -51,24 +51,26 @@ for (i in 1:100) {
   
   samp1.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
   samp2.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
-  
+
+  samp1.peaks.detect[samp1.peaks.detect < min.detect] = 0
+  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0  
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
-  samp1.peaks.detect[samp1.peaks.detect < min.detect] = 0
-  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0
-  
+
   bray.comp = rbind(bray.comp,c(vegdist(x = t(spxsite.mult),method = "bray"),
                                 diversity(spxsite.mult$Samp1, index = "shannon"),
                                 diversity(spxsite.mult$Samp2, index = "shannon"),
                                 weighted.mean(as.numeric(row.names(spxsite.mult)),spxsite.mult$Samp1),
-                                weighted.mean(as.numeric(row.names(spxsite.mult)),spxsite.mult$Samp2)
+                                weighted.mean(as.numeric(row.names(spxsite.mult)),spxsite.mult$Samp2),
+                                length(spxsite.mult$Samp1[spxsite.mult$Samp1 > 0]),
+                                length(spxsite.mult$Samp2[spxsite.mult$Samp2 > 0])
   )
   )
   
 }
 
 bray.comp = as.data.frame(bray.comp)
-colnames(bray.comp) = c("Bray.Peak.Samp.Var","Samp1_Shannon.Peak.Samp.Var","Samp2_Shannon.Peak.Samp.Var","Samp1_Weighted.Peak.Samp.Var","Samp2_Weighted.Peak.Samp.Var")
+colnames(bray.comp) = c("Bray.Peak.Samp.Var","Samp1_Shannon.Peak.Samp.Var","Samp2_Shannon.Peak.Samp.Var","Samp1_Weighted.Peak.Samp.Var","Samp2_Weighted.Peak.Samp.Var","Samp1_Richness","Samp2_Richness")
 
 peak.and.samp.var = bray.comp
 
@@ -81,17 +83,19 @@ bray.full.comp = rbind(bray.full.comp,cbind(rep(min.detect,nrow(peak.and.samp.va
                                             rep(diversity(spxsite$Samp2, index = "shannon"),nrow(peak.and.samp.var)),
                                             weighted.mean(as.numeric(row.names(spxsite)),spxsite$Samp1),
                                             weighted.mean(as.numeric(row.names(spxsite)),spxsite$Samp2),
+                                            length(spxsite$Samp1[spxsite$Samp1 > 0]),
+                                            length(spxsite$Samp2[spxsite$Samp2 > 0]),
                                             peak.and.samp.var))
 
 #check niche breadth and order of magnitude variation
-print(c(niche.breadth,order.of.mag,bray.it,date(),min.detect))
+print(c(niche.breadth,order.of.mag,bray.it,date(),min.detect,peak.rich,length(spxsite.mult$Samp1[spxsite.mult$Samp1 > 0])))
 
 }
 
 }
 
 bray.full.comp = as.data.frame(bray.full.comp)
-colnames(bray.full.comp)[1:6] = c("Min.Detect","Bray.True","Samp1.Shannon.True","Samp2.Shannon.True","Samp1.Weighted.True","Samp2.Weighted.True")
+colnames(bray.full.comp)[1:8] = c("Min.Detect","Bray.True","Samp1.Shannon.True","Samp2.Shannon.True","Samp1.Weighted.True","Samp2.Weighted.True","Samp1.Richness.True","Samp2.Richness.True")
 
 # make plots
 
