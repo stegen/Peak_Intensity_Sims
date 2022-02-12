@@ -2,7 +2,10 @@ rm(list=ls())
 
 library('vegan')
 
-for (peak.rich in c(100,1000,10000)) {
+complete.metrics = numeric()
+unique.id = 1
+
+for (peak.rich in c(100,500,1000,5000,10000)) {
 
   bray.full.comp = numeric()
     
@@ -57,7 +60,8 @@ for (i in 1:100) {
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
 
-  bray.comp = rbind(bray.comp,c(vegdist(x = t(spxsite.mult),method = "bray"),
+  bray.comp = rbind(bray.comp,c(unique.id,
+                                vegdist(x = t(spxsite.mult),method = "bray"),
                                 diversity(spxsite.mult$Samp1, index = "shannon"),
                                 diversity(spxsite.mult$Samp2, index = "shannon"),
                                 weighted.mean(as.numeric(row.names(spxsite.mult)),spxsite.mult$Samp1),
@@ -70,10 +74,11 @@ for (i in 1:100) {
 }
 
 bray.comp = as.data.frame(bray.comp)
-colnames(bray.comp) = c("Bray.Peak.Samp.Var","Samp1_Shannon.Peak.Samp.Var","Samp2_Shannon.Peak.Samp.Var","Samp1_Weighted.Peak.Samp.Var","Samp2_Weighted.Peak.Samp.Var","Samp1_Richness","Samp2_Richness")
+colnames(bray.comp) = c("Unique.ID","Bray.Peak.Samp.Var","Samp1_Shannon.Peak.Samp.Var","Samp2_Shannon.Peak.Samp.Var","Samp1_Weighted.Peak.Samp.Var","Samp2_Weighted.Peak.Samp.Var","Samp1_Richness","Samp2_Richness")
 
 peak.and.samp.var = bray.comp
 
+unique.id = unique.id + 1
 
 #####
 
@@ -96,6 +101,8 @@ print(c(niche.breadth,order.of.mag,bray.it,date(),min.detect,peak.rich,length(sp
 
 bray.full.comp = as.data.frame(bray.full.comp)
 colnames(bray.full.comp)[1:8] = c("Min.Detect","Bray.True","Samp1.Shannon.True","Samp2.Shannon.True","Samp1.Weighted.True","Samp2.Weighted.True","Samp1.Richness.True","Samp2.Richness.True")
+
+complete.metrics = rbind(complete.metrics,bray.full.comp)
 
 # make plots
 
@@ -210,3 +217,78 @@ points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
 dev.off()
 
 }
+
+# analyses with complete.metric data frame
+
+complete.metrics$Shannon.diff = 100*abs(complete.metrics$Samp1_Shannon.Peak.Samp.Var - complete.metrics$Samp1.Shannon.True)/complete.metrics$Samp1.Shannon.True
+complete.metrics$Bray.diff = 100*abs(complete.metrics$Bray.Peak.Samp.Var - complete.metrics$Bray.True)/complete.metrics$Bray.True
+complete.metrics$Weighted.diff = 100*abs(complete.metrics$Samp1_Weighted.Peak.Samp.Var - complete.metrics$Samp1.Weighted.True)/complete.metrics$Samp1.Weighted.True
+complete.metrics$Mean.obs.rich = rowMeans(complete.metrics[,c('Samp1_Richness','Samp2_Richness')])
+
+write.csv(complete.metrics,"Raw_Metrics_Min.Detect_Variation.csv",quote = F,row.names = F)
+
+
+# plot difference between true and observed Shannon
+# only doing for min.detect = 10
+
+# shannon error as function of observed richness
+mod.to.plot = complete.metrics$Shannon.diff[which(complete.metrics$Min.Detect == 10)] ~ log10(complete.metrics$Samp1_Richness[which(complete.metrics$Min.Detect == 10)])
+plot(mod.to.plot,xlab="Log10(Observed Peak Richness)",ylab="Shannon (% Error)",cex=0.4)
+
+# bray error as function of observed mean richness
+mod.to.plot = complete.metrics$Bray.diff[which(complete.metrics$Min.Detect == 10)] ~ log10(complete.metrics$Samp1_Richness[which(complete.metrics$Min.Detect == 10)])
+plot(mod.to.plot,xlab="Log10(Observed Peak Richness)",ylab="Bray-Curtis (% Error)",cex=0.4)
+
+# weighted trait error as function of observed richness
+mod.to.plot = complete.metrics$Weighted.diff[which(complete.metrics$Min.Detect == 10)] ~ log10(complete.metrics$Samp1_Richness[which(complete.metrics$Min.Detect == 10)])
+plot(mod.to.plot,xlab="Log10(Observed Peak Richness)",ylab="Weighted Trait (% Error)",cex=0.4)
+
+# calculate coef of variance around each true value and plot as function of observed peak richness
+# only doing for min.detect = 10
+# only doing Samp1 for the within-sample metrics
+
+ids.to.use = unique(complete.metrics$Unique.ID[which(complete.metrics$Min.Detect == 10)])
+var.comp = numeric()
+
+for (i in ids.to.use) {
+  
+  shannon.cv = sd(x = complete.metrics$Samp1_Shannon.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])/mean(x = complete.metrics$Samp1_Shannon.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])
+  bray.cv = sd(x = complete.metrics$Bray.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])/mean(x = complete.metrics$Bray.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])
+  weighted.cv = sd(x = complete.metrics$Samp1_Weighted.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])/mean(x = complete.metrics$Samp1_Weighted.Peak.Samp.Var[which(complete.metrics$Unique.ID == i)])
+  samp1.mean.rich = mean(complete.metrics$Samp1_Richness[which(complete.metrics$Unique.ID == i)])
+  two.samp.mean.rich = mean(c(complete.metrics$Samp1_Richness[which(complete.metrics$Unique.ID == i)],complete.metrics$Samp2_Richness[which(complete.metrics$Unique.ID == i)]))
+  
+  var.comp = rbind(var.comp,c(shannon.cv,
+                              bray.cv,
+                              weighted.cv,
+                              samp1.mean.rich,
+                              two.samp.mean.rich))
+}
+
+var.comp = as.data.frame(var.comp)
+colnames(var.comp) = c("Shannon.CV","Bray.CV","Weighted.CV","Samp1.Mean.Rich","Two.Samp.Mean.Rich")
+
+write.csv(var.comp,"CV_Richness_Compilation.csv",quote = F,row.names = F)
+
+# plot coef of variance as function of richness
+
+pdf("CV_vs_Richness.pdf",height=15)
+
+  par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(3,1))
+
+  # shannon variance
+  mod.to.plot = 100*var.comp$Shannon.CV ~ log10(var.comp$Samp1.Mean.Rich)
+  plot(mod.to.plot,xlab="Log10(Mean Peak Richness)",ylab="Shannon CV (%)",cex=0.4)
+  points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
+
+  # bray variance
+  mod.to.plot = 100*var.comp$Bray.CV ~ log10(var.comp$Two.Samp.Mean.Rich)
+  plot(mod.to.plot,xlab="Log10(Mean Peak Richness)",ylab="Bray-Curtis CV (%)",cex=0.4)
+  points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
+
+  # weighted variance
+  mod.to.plot = 100*var.comp$Weighted.CV ~ log10(var.comp$Samp1.Mean.Rich)
+  plot(mod.to.plot,xlab="Log10(Mean Peak Richness)",ylab="Weighted Trait CV (%)",cex=0.4)
+  points(lowess(mod.to.plot,f = 0.3),typ="l",lwd=2,lty=2,col=5)
+
+dev.off()
