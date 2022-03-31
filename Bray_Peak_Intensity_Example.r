@@ -2,8 +2,10 @@ rm(list=ls())
 
 library('vegan')
 
-for (peak.rich in c(100,1000,10000)) {
-
+# !!! CHANGE THIS BACK !!!
+#for (peak.rich in c(100,1000,10000)) {
+for (peak.rich in c(1000)) {
+  
 bray.full.comp = numeric()
 
 for (bray.it in 1:100) {
@@ -45,11 +47,13 @@ bray.comp = numeric()
 for (i in 1:100) {
   
   # maybe build another setup that systematically varies the prob of zero)
-  min.detect = sample(x = c(1:10),size = 1) # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
-
+  #min.detect = sample(x = c(1:10),size = 1) # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
+  min.detect = 0.05 # the minimum 'peaks.detect' value (think of it as ionization efficiency) below which we assume the peak can't be observed regardless of its concentration
+  
   spxsite.mult = spxsite
   
-  peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
+  #peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
+  peaks.detect = runif(n = nrow(spxsite),min = 0,max = 2)
   peaks.detect[peaks.detect < min.detect] = 0
   
   spxsite.mult = spxsite*peaks.detect
@@ -69,6 +73,91 @@ colnames(bray.comp) = c("Bray.Peak.Var","Samp1_Shannon.Peak.Var","Samp2_Shannon.
 
 peak.var = bray.comp
 
+##################################################
+if (niche.breadth == 100 & peak.rich == 1000) {
+  
+  # first remove peaks that had true zero abundance in either sample
+  spxsite.error.1 = spxsite.mult[-which(spxsite$Samp1 == 0 | spxsite$Samp2 == 0),]
+  spxsite.true = spxsite[-which(spxsite$Samp1 == 0 | spxsite$Samp2 == 0),]
+  if (identical(rownames(spxsite.error.1),rownames(spxsite.true)) != T) {
+    
+    print("Error: subsets for spxsite do not match")
+    break()
+    
+  }
+  
+  pdf("Obs.Abund_vs_Obs.Abund.pdf",height=5,width=10)
+  # plot observed vs. true
+  mod.to.plot = I(spxsite.error.1$Samp1/max(spxsite.error.1$Samp1)) ~ I(spxsite.true$Samp1/max(spxsite.true$Samp1))
+  par(pty="s",mfrow=c(1,2))
+  plot(mod.to.plot,xlab="True Abundance",ylab="Observed Intensity",cex.lab=2,cex.axis=1.5,cex=0.3)
+  abline(0,1,col=2,lwd=2)
+  mod = summary(lm(mod.to.plot))
+  abline(mod,lwd=2,col=4)
+  
+  mod.to.plot = log10(I(spxsite.error.1$Samp1/max(spxsite.error.1$Samp1))) ~ log10(I(spxsite.true$Samp1/max(spxsite.true$Samp1)))
+  plot(mod.to.plot,xlab="Log10(True Abundance)",ylab="Log10(Observed Intensity)",cex.lab=2,cex.axis=1.5,cex=0.3)
+  abline(0,1,col=2,lwd=2)
+  #mod = summary(lm(mod.to.plot))
+  #abline(mod,lwd=2,col=4)
+  
+  dev.off()
+  
+  pdf("Obs_v_True_Diff.pdf",height = 10,width = 10)
+### make figures for
+# between-peak differences in intensity vs. between-peak differences in true abundance (could use both samples)
+# within-peak differences in intensity vs. within-peak differences in true abundance (between samples)
+
+
+
+# between-peak differences in intensity vs. between-peak differences in true abundance (using only 1 sample)
+temp.y = numeric()
+for (first.peak in 1:I(nrow(spxsite.error.1)-1)) {
+  
+  temp.y = c(temp.y, I( spxsite.error.1$Samp1[first.peak] - spxsite.error.1$Samp1[I(first.peak+1):nrow(spxsite.error.1)]))
+    
+}
+
+temp.x = numeric()
+for (first.peak in 1:I(nrow(spxsite.true)-1)) {
+  
+  temp.x = c(temp.x, I( spxsite.true$Samp1[first.peak] - spxsite.true$Samp1[I(first.peak+1):nrow(spxsite.true)]))
+
+}
+
+print(c(length(temp.x)-I(nrow(spxsite.true)*(nrow(spxsite.true)-1)/2)," This should be zero"))
+
+mod.to.plot = temp.y ~ temp.x 
+full.mod = summary(lm(mod.to.plot))
+
+rand.subset = sample(x = 1:I((nrow(spxsite.true)-1)*nrow(spxsite.true)/2),size = 1000,replace = F)
+temp.y = temp.y[rand.subset]
+temp.x = temp.x[rand.subset]
+mod.to.plot = temp.y ~ temp.x 
+par(pty="s",cex.lab=2,cex.axis=1.5,mfrow=c(2,2),cex=0.3)
+plot(mod.to.plot,xlab="True Difference",ylab="Observed Difference")
+#mod = summary(lm(mod.to.plot))
+abline(full.mod,col=2,lwd=2)
+rm('temp.y','temp.x','full.mod','rand.subset')
+
+# within-peak differences in intensity vs. within-peak differences in true abundance (between samples)
+true.within.diff = spxsite.true$Samp1 - spxsite.true$Samp2
+error.within.diff = spxsite.error.1$Samp1 - spxsite.error.1$Samp2
+temp.y = 2*(true.within.diff - min(true.within.diff))/(max(true.within.diff)-min(true.within.diff)) - 1
+temp.x = 2*(error.within.diff - min(error.within.diff))/(max(error.within.diff)-min(error.within.diff)) - 1
+temp.y = true.within.diff/max(true.within.diff)
+temp.x = error.within.diff/max(error.within.diff)
+mod.to.plot = temp.y ~ temp.x 
+#par(pty="s",cex.lab=2,cex.axis=1.5)
+plot(mod.to.plot,xlab="True Difference",ylab="Observed Difference")
+mod = summary(lm(mod.to.plot))
+abline(mod,col=2,lwd=2)
+rm('temp.y','temp.x','mod','true.within.diff','error.within.diff')
+
+}
+########################################################
+
+######## change the error assumption
 # based on assumption that a each peak has a different level of detectability across samples and they are uncorrelated across samples
 bray.comp = numeric()
 
@@ -101,6 +190,57 @@ colnames(bray.comp) = c("Bray.Peak.Samp.Var","Samp1_Shannon.Peak.Samp.Var","Samp
 
 peak.and.samp.var = bray.comp
 
+##################################################
+if (niche.breadth == 100 & peak.rich == 1000) {
+### make figures for
+# between-peak differences in intensity vs. between-peak differences in true abundance (could use both samples)
+# within-peak differences in intensity vs. within-peak differences in true abundance (between samples)
+
+# first remove peaks that had true zero abundance in either sample
+spxsite.error.2 = spxsite.mult[-which(spxsite$Samp1 == 0 | spxsite$Samp2 == 0),]
+spxsite.true = spxsite[-which(spxsite$Samp1 == 0 | spxsite$Samp2 == 0),]
+if (identical(rownames(spxsite.error.2),rownames(spxsite.true)) != T) {
+  
+  print("Error: subsets for spxsite do not match")
+  break()
+  
+}
+
+# between-peak differences in intensity vs. between-peak differences in true abundance (using only 1 sample)
+temp.y = as.vector(dist(spxsite.error.2$Samp1)/max(dist(spxsite.error.2$Samp1)))
+temp.x = as.vector(dist(spxsite.true$Samp1)/max(dist(spxsite.true$Samp1)))
+mod.to.plot = temp.y ~ temp.x 
+full.mod = summary(lm(mod.to.plot))
+
+
+rand.subset = sample(x = 1:I((nrow(spxsite.true)-1)*nrow(spxsite.true)/2),size = 1000,replace = F)
+temp.y = as.vector(dist(spxsite.error.2$Samp1)/max(dist(spxsite.error.2$Samp1)))[rand.subset]
+temp.x = as.vector(dist(spxsite.true$Samp1)/max(dist(spxsite.true$Samp1)))[rand.subset]
+mod.to.plot = temp.y ~ temp.x 
+#par(pty="s",cex.lab=2,cex.axis=1.5)
+plot(mod.to.plot,xlab="True Difference",ylab="Observed Difference")
+#mod = summary(lm(mod.to.plot))
+abline(full.mod,col=2,lwd=2)
+rm('temp.y','temp.x','full.mod','rand.subset')
+
+# within-peak differences in intensity vs. within-peak differences in true abundance (between samples)
+true.within.diff = spxsite.true$Samp1 - spxsite.true$Samp2
+error.within.diff = spxsite.error.2$Samp1 - spxsite.error.2$Samp2
+temp.y = 2*(true.within.diff - min(true.within.diff))/(max(true.within.diff)-min(true.within.diff)) - 1
+temp.x = 2*(error.within.diff - min(error.within.diff))/(max(error.within.diff)-min(error.within.diff)) - 1
+mod.to.plot = temp.y ~ temp.x 
+#par(pty="s",cex.lab=2,cex.axis=1.5)
+plot(mod.to.plot,xlab="True Difference",ylab="Observed Difference")
+mod = summary(lm(mod.to.plot))
+abline(mod,col=2,lwd=2)
+rm('temp.y','temp.x','mod')
+
+dev.off()
+
+}
+########################################################
+
+##########
 # based on assumption that a each peak has a different level of detectability across samples and they are uncorrelated across samples, but the two samples have different ranges in detectability
 bray.comp = numeric()
 
