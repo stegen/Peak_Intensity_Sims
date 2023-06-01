@@ -4,6 +4,25 @@ library('vegan')
 fig.made = 0 # toggle setting whether to make the regression of observed and true abundance/differences
 rsq.compiled = numeric()
 
+# set min and max errors and create associated directory
+min.error = 0
+max.error = 8
+
+if ( grep("HRMS_Peaks_Error_",getwd()) > 0) {
+  
+  setwd(dir = gsub("/HRMS_Peaks_Error_.*","",getwd()))
+  
+}
+
+if (dir.exists(paste0("HRMS_Peaks_Error_",min.error,"_",max.error)) == F) {
+  
+  dir.create(paste0("HRMS_Peaks_Error_",min.error,"_",max.error))  
+  
+}
+
+setwd(paste0("HRMS_Peaks_Error_",min.error,"_",max.error)) 
+
+# start loop for different numbers of peaks per sample
 for (peak.rich in c(100,1000)) {
 
 bray.full.comp = numeric()
@@ -52,8 +71,8 @@ for (i in 1:100) {
   
   spxsite.mult = spxsite
   
-  peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
-  peaks.detect[peaks.detect < min.detect] = 0
+  peaks.detect = runif(n = nrow(spxsite),min = min.error,max = max.error)
+  peaks.detect[peaks.detect <= min.detect] = 0
   
   spxsite.mult = spxsite*peaks.detect
   
@@ -263,10 +282,10 @@ for (i in 1:100) {
   
   spxsite.mult = spxsite
   
-  samp1.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
-  samp2.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
-  samp1.peaks.detect[samp1.peaks.detect < min.detect] = 0
-  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0
+  samp1.peaks.detect = runif(n = nrow(spxsite),min = min.error,max = max.error)
+  samp2.peaks.detect = runif(n = nrow(spxsite),min = min.error,max = max.error)
+  samp1.peaks.detect[samp1.peaks.detect <= min.detect] = 0
+  samp2.peaks.detect[samp2.peaks.detect <= min.detect] = 0
   
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
@@ -471,10 +490,10 @@ for (i in 1:100) {
   
   spxsite.mult = spxsite
   
-  samp1.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 10)
-  samp2.peaks.detect = runif(n = nrow(spxsite),min = 0,max = 100)
-  samp1.peaks.detect[samp1.peaks.detect < I(min.detect/10)] = 0 # this is hard coded to rescale the min.detect because the detect range is 10x lower for samp1 in this case
-  samp2.peaks.detect[samp2.peaks.detect < min.detect] = 0
+  samp1.peaks.detect = runif(n = nrow(spxsite),min = min.error,max = I(max.error/10))
+  samp2.peaks.detect = runif(n = nrow(spxsite),min = min.error,max = max.error)
+  samp1.peaks.detect[samp1.peaks.detect <= I(min.detect/10)] = 0 # this is hard coded to rescale the min.detect because the detect range is 10x lower for samp1 in this case
+  samp2.peaks.detect[samp2.peaks.detect <= min.detect] = 0
   
   spxsite.mult$Samp1 = spxsite$Samp1*samp1.peaks.detect
   spxsite.mult$Samp2 = spxsite$Samp2*samp2.peaks.detect
